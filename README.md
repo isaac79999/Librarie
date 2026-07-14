@@ -1,4 +1,4 @@
--- MINI HUB LIBRARY - Final com Toggle + Icon Suporte Completo
+-- MINI HUB LIBRARY - Com Slider + Ícones
 local Library = {}
 
 local Players = game:GetService("Players")
@@ -37,7 +37,7 @@ titleLabel.TextScaled = true
 titleLabel.Font = Enum.Font.GothamBold
 titleLabel.Parent = titleBar
 
--- Controls
+-- Controls (minimize, close, orb)
 local minimizeBtn = Instance.new("TextButton")
 minimizeBtn.Size = UDim2.new(0, 35, 0, 35)
 minimizeBtn.Position = UDim2.new(1, -80, 0.5, -17.5)
@@ -87,7 +87,7 @@ contentPadding.PaddingRight = UDim.new(0, 12)
 contentPadding.PaddingTop = UDim.new(0, 12)
 contentPadding.Parent = content
 
--- Drag do painel
+-- Drag e Bolinha (mantido completo)
 local dragging = false
 local dragStart, startPos
 
@@ -110,7 +110,6 @@ UserInputService.InputEnded:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then dragging = false end
 end)
 
--- Bolinha
 local orb = Instance.new("TextButton")
 orb.Size = UDim2.new(0, 60, 0, 60)
 orb.Position = UDim2.new(0.5, -30, 0.85, 0)
@@ -123,12 +122,27 @@ orb.Visible = false
 orb.Parent = screenGui
 Instance.new("UICorner", orb).CornerRadius = UDim.new(1, 0)
 
+-- Bolinha com suporte a imagem
+function Library:SetOrbIcon(icon)
+    if string.find(icon, "rbxassetid") then
+        local img = Instance.new("ImageLabel")
+        img.Size = UDim2.new(1,0,1,0)
+        img.BackgroundTransparency = 1
+        img.Image = icon
+        img.ScaleType = Enum.ScaleType.Fit
+        img.Parent = orb
+        orb.Text = ""
+    else
+        orb.Text = icon
+    end
+end
+
 minimizeBtn.MouseButton1Click:Connect(function()
     mainFrame.Visible = false
     orb.Visible = true
 end)
 
--- Drag bolinha
+-- Drag da bolinha
 local orbDragging = false
 local orbDragStart, orbStartPos
 
@@ -180,9 +194,8 @@ function Library:CreateTab(config)
     tabBtn.Parent = sidebar
     Instance.new("UICorner", tabBtn).CornerRadius = UDim.new(0, 8)
 
-    -- Suporte a emoji ou Image
     local iconObj
-    if string.find(icon, "rbxassetid") then
+    if string.find(tostring(icon), "rbxassetid") then
         iconObj = Instance.new("ImageLabel")
         iconObj.Image = icon
         iconObj.ScaleType = Enum.ScaleType.Fit
@@ -257,7 +270,6 @@ function Library:CreateTab(config)
 
         CreateToggle = function(self, cfg)
             local state = cfg.CurrentValue or false
-
             local toggle = Instance.new("TextButton")
             toggle.Size = UDim2.new(1, 0, 0, 46)
             toggle.BackgroundColor3 = Color3.fromRGB(55,55,55)
@@ -276,14 +288,113 @@ function Library:CreateTab(config)
                     toggle.BackgroundColor3 = Color3.fromRGB(55,55,55)
                 end
             end
-
             Update()
 
             toggle.MouseButton1Click:Connect(function()
                 state = not state
                 Update()
-                if cfg.Callback then
-                    cfg.Callback(state)
+                if cfg.Callback then cfg.Callback(state) end
+            end)
+        end,
+
+        CreateSlider = function(self, cfg)
+            local frame = Instance.new("Frame")
+            frame.Size = UDim2.new(1, 0, 0, 70)
+            frame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+            frame.Parent = tabContent
+            Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 8)
+
+            -- Ícone + Nome
+            local header = Instance.new("Frame")
+            header.Size = UDim2.new(1, 0, 0, 30)
+            header.BackgroundTransparency = 1
+            header.Parent = frame
+
+            local iconObj
+            local icon = cfg.Icon or ""
+            if icon \~= "" then
+                if string.find(icon, "rbxassetid") then
+                    iconObj = Instance.new("ImageLabel")
+                    iconObj.Image = icon
+                    iconObj.ScaleType = Enum.ScaleType.Fit
+                else
+                    iconObj = Instance.new("TextLabel")
+                    iconObj.Text = icon
+                    iconObj.TextScaled = true
+                end
+                iconObj.Size = UDim2.new(0, 24, 0, 24)
+                iconObj.Position = UDim2.new(0, 8, 0, 3)
+                iconObj.BackgroundTransparency = 1
+                iconObj.Parent = header
+            end
+
+            local nameLabel = Instance.new("TextLabel")
+            nameLabel.Size = UDim2.new(1, -60, 1, 0)
+            nameLabel.Position = UDim2.new(0, 40, 0, 0)
+            nameLabel.BackgroundTransparency = 1
+            nameLabel.Text = cfg.Name
+            nameLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+            nameLabel.TextXAlignment = Enum.TextXAlignment.Left
+            nameLabel.TextScaled = true
+            nameLabel.Font = Enum.Font.GothamSemibold
+            nameLabel.Parent = header
+
+            local valueLabel = Instance.new("TextLabel")
+            valueLabel.Size = UDim2.new(0, 50, 1, 0)
+            valueLabel.Position = UDim2.new(1, -55, 0, 0)
+            valueLabel.BackgroundTransparency = 1
+            valueLabel.Text = tostring(cfg.Default or cfg.Min)
+            valueLabel.TextColor3 = Color3.fromRGB(255, 200, 100)
+            valueLabel.TextScaled = true
+            valueLabel.Parent = header
+
+            -- Slider
+            local sliderBar = Instance.new("Frame")
+            sliderBar.Size = UDim2.new(1, -20, 0, 8)
+            sliderBar.Position = UDim2.new(0, 10, 0, 45)
+            sliderBar.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+            sliderBar.Parent = frame
+            Instance.new("UICorner", sliderBar).CornerRadius = UDim.new(1, 0)
+
+            local fill = Instance.new("Frame")
+            fill.Size = UDim2.new(0.5, 0, 1, 0)
+            fill.BackgroundColor3 = Color3.fromRGB(255, 140, 0)
+            fill.Parent = sliderBar
+            Instance.new("UICorner", fill).CornerRadius = UDim.new(1, 0)
+
+            local min = cfg.Min or 0
+            local max = cfg.Max or 100
+            local value = cfg.Default or min
+
+            local function updateSlider()
+                local percent = (value - min) / (max - min)
+                fill.Size = UDim2.new(percent, 0, 1, 0)
+                valueLabel.Text = tostring(math.floor(value))
+                if cfg.Callback then cfg.Callback(value) end
+            end
+
+            updateSlider()
+
+            -- Drag slider
+            local sliding = false
+            sliderBar.InputBegan:Connect(function(input)
+                if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+                    sliding = true
+                end
+            end)
+
+            UserInputService.InputEnded:Connect(function(input)
+                if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+                    sliding = false
+                end
+            end)
+
+            RunService.RenderStepped:Connect(function()
+                if sliding then
+                    local mousePos = UserInputService:GetMouseLocation()
+                    local rel = math.clamp((mousePos.X - sliderBar.AbsolutePosition.X) / sliderBar.AbsoluteSize.X, 0, 1)
+                    value = min + (max - min) * rel
+                    updateSlider()
                 end
             end)
         end
