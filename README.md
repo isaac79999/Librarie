@@ -37,7 +37,7 @@ titleLabel.TextScaled = true
 titleLabel.Font = Enum.Font.GothamBold
 titleLabel.Parent = titleBar
 
--- Controls (minimize e close)
+-- Controls
 local minimizeBtn = Instance.new("TextButton")
 minimizeBtn.Size = UDim2.new(0, 35, 0, 35)
 minimizeBtn.Position = UDim2.new(1, -80, 0.5, -17.5)
@@ -180,7 +180,7 @@ function Library:CreateTab(config)
     tabBtn.Parent = sidebar
     Instance.new("UICorner", tabBtn).CornerRadius = UDim.new(0, 8)
 
-    -- === SUPORTE A ÍCONE MELHORADO ===
+    -- ÍCONE CORRIGIDO (URL + rbxassetid)
     local iconObj
     if string.match(icon, "^https?://") or string.find(icon, "rbxassetid") then
         iconObj = Instance.new("ImageLabel")
@@ -222,7 +222,7 @@ function Library:CreateTab(config)
     layout.Parent = tabContent
 
     layout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
-        tabContent.CanvasSize = UDim2.new(0, 0, 0, layout.AbsoluteContentSize.Y + 30)
+        tabContent.CanvasSize = UDim2.new(0, 0, 0, layout.AbsoluteContentSize.Y + 40)
     end)
 
     table.insert(tabs, {btn = tabBtn, content = tabContent})
@@ -288,7 +288,6 @@ function Library:CreateTab(config)
             end)
         end,
 
-        -- === SLIDER (PC + MOBILE) ===
         CreateSlider = function(self, cfg)
             local min = cfg.Min or 0
             local max = cfg.Max or 100
@@ -345,7 +344,6 @@ function Library:CreateTab(config)
                 callback(value)
             end
 
-            -- Drag (Mouse + Touch)
             local function onInputBegan(input)
                 if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
                     dragging = true
@@ -369,7 +367,6 @@ function Library:CreateTab(config)
 
             knob.InputBegan:Connect(onInputBegan)
             bar.InputBegan:Connect(onInputBegan)
-
             UserInputService.InputChanged:Connect(onInputChanged)
 
             UserInputService.InputEnded:Connect(function(input)
@@ -378,12 +375,10 @@ function Library:CreateTab(config)
                 end
             end)
 
-            updateSlider() -- inicial
-
+            updateSlider()
             return { SetValue = setValue, GetValue = function() return value end }
         end
     }
 end
 
-print("MINI HUB LIBRARY - Icon URL/ID + Slider Mobile/PC carregado com sucesso porra!")
 return Library
