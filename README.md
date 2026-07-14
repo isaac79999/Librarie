@@ -1,4 +1,4 @@
--- MINI HUB LIBRARY - Completa e Corrigida
+-- MINI HUB LIBRARY - Final com Toggle + Icon Suporte Completo
 local Library = {}
 
 local Players = game:GetService("Players")
@@ -110,7 +110,7 @@ UserInputService.InputEnded:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then dragging = false end
 end)
 
--- Bolinha Arrastável
+-- Bolinha
 local orb = Instance.new("TextButton")
 orb.Size = UDim2.new(0, 60, 0, 60)
 orb.Position = UDim2.new(0.5, -30, 0.85, 0)
@@ -123,13 +123,12 @@ orb.Visible = false
 orb.Parent = screenGui
 Instance.new("UICorner", orb).CornerRadius = UDim.new(1, 0)
 
--- Minimizar
 minimizeBtn.MouseButton1Click:Connect(function()
     mainFrame.Visible = false
     orb.Visible = true
 end)
 
--- Drag da bolinha
+-- Drag bolinha
 local orbDragging = false
 local orbDragStart, orbStartPos
 
@@ -152,7 +151,6 @@ UserInputService.InputEnded:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then orbDragging = false end
 end)
 
--- Restaurar
 orb.MouseButton1Click:Connect(function()
     mainFrame.Visible = true
     orb.Visible = false
@@ -182,14 +180,22 @@ function Library:CreateTab(config)
     tabBtn.Parent = sidebar
     Instance.new("UICorner", tabBtn).CornerRadius = UDim.new(0, 8)
 
-    local iconLabel = Instance.new("TextLabel")
-    iconLabel.Size = UDim2.new(1, 0, 0.55, 0)
-    iconLabel.BackgroundTransparency = 1
-    iconLabel.Text = icon
-    iconLabel.TextScaled = true
-    iconLabel.Font = Enum.Font.GothamBold
-    iconLabel.TextColor3 = Color3.fromRGB(255, 200, 100)
-    iconLabel.Parent = tabBtn
+    -- Suporte a emoji ou Image
+    local iconObj
+    if string.find(icon, "rbxassetid") then
+        iconObj = Instance.new("ImageLabel")
+        iconObj.Image = icon
+        iconObj.ScaleType = Enum.ScaleType.Fit
+    else
+        iconObj = Instance.new("TextLabel")
+        iconObj.Text = icon
+        iconObj.TextScaled = true
+        iconObj.Font = Enum.Font.GothamBold
+    end
+    iconObj.Size = UDim2.new(1, 0, 0.55, 0)
+    iconObj.BackgroundTransparency = 1
+    iconObj.TextColor3 = Color3.fromRGB(255, 200, 100)
+    iconObj.Parent = tabBtn
 
     local nameLabel = Instance.new("TextLabel")
     nameLabel.Size = UDim2.new(1, 0, 0.45, 0)
@@ -236,17 +242,50 @@ function Library:CreateTab(config)
     sidebar.CanvasSize = UDim2.new(0, 0, 0, sidebarLayout.AbsoluteContentSize.Y + 20)
 
     return {
-        CreateButton = function(self, btnConfig)
+        CreateButton = function(self, cfg)
             local b = Instance.new("TextButton")
             b.Size = UDim2.new(1, 0, 0, 46)
             b.BackgroundColor3 = Color3.fromRGB(55, 55, 55)
-            b.Text = btnConfig.Name
+            b.Text = cfg.Name
             b.TextColor3 = Color3.new(1,1,1)
             b.TextScaled = true
             b.Font = Enum.Font.GothamSemibold
             b.Parent = tabContent
             Instance.new("UICorner", b).CornerRadius = UDim.new(0, 8)
-            b.MouseButton1Click:Connect(btnConfig.Callback or function() end)
+            b.MouseButton1Click:Connect(cfg.Callback or function() end)
+        end,
+
+        CreateToggle = function(self, cfg)
+            local state = cfg.CurrentValue or false
+
+            local toggle = Instance.new("TextButton")
+            toggle.Size = UDim2.new(1, 0, 0, 46)
+            toggle.BackgroundColor3 = Color3.fromRGB(55,55,55)
+            toggle.TextColor3 = Color3.new(1,1,1)
+            toggle.TextScaled = true
+            toggle.Font = Enum.Font.GothamSemibold
+            toggle.Parent = tabContent
+            Instance.new("UICorner", toggle).CornerRadius = UDim.new(0,8)
+
+            local function Update()
+                if state then
+                    toggle.Text = cfg.Name .. "  [ON]"
+                    toggle.BackgroundColor3 = Color3.fromRGB(0,170,80)
+                else
+                    toggle.Text = cfg.Name .. "  [OFF]"
+                    toggle.BackgroundColor3 = Color3.fromRGB(55,55,55)
+                end
+            end
+
+            Update()
+
+            toggle.MouseButton1Click:Connect(function()
+                state = not state
+                Update()
+                if cfg.Callback then
+                    cfg.Callback(state)
+                end
+            end)
         end
     }
 end
