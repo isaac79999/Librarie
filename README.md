@@ -1,4 +1,4 @@
--- MINI HUB LIBRARY - Versão Corrigida (Estrutura + Canvas + Sidebar)
+-- MINI HUB LIBRARY - Versão Final Corrigida (Icon + Elementos garantidos)
 local Library = {}
 
 local Players = game:GetService("Players")
@@ -20,7 +20,6 @@ mainFrame.Position = UDim2.new(0.5, -290, 0.5, -210)
 mainFrame.Parent = screenGui
 Instance.new("UICorner", mainFrame).CornerRadius = UDim.new(0, 14)
 
--- Title Bar
 local titleBar = Instance.new("Frame")
 titleBar.Size = UDim2.new(1, 0, 0, 50)
 titleBar.BackgroundColor3 = Color3.fromRGB(255, 140, 0)
@@ -36,7 +35,6 @@ titleLabel.TextScaled = true
 titleLabel.Font = Enum.Font.GothamBold
 titleLabel.Parent = titleBar
 
--- Controls
 local minimizeBtn = Instance.new("TextButton")
 minimizeBtn.Size = UDim2.new(0, 35, 0, 35)
 minimizeBtn.Position = UDim2.new(1, -80, 0.5, -17.5)
@@ -55,7 +53,6 @@ closeBtn.TextColor3 = Color3.fromRGB(0,0,0)
 closeBtn.TextScaled = true
 closeBtn.Parent = titleBar
 
--- Container
 local container = Instance.new("Frame")
 container.Size = UDim2.new(1, 0, 1, -50)
 container.Position = UDim2.new(0, 0, 0, 50)
@@ -73,7 +70,6 @@ sidebarLayout.SortOrder = Enum.SortOrder.LayoutOrder
 sidebarLayout.Padding = UDim.new(0, 8)
 sidebarLayout.Parent = sidebar
 
--- CONTENT AGORA É FRAME (melhor estrutura)
 local content = Instance.new("Frame")
 content.Size = UDim2.new(1, -70, 1, 0)
 content.Position = UDim2.new(0, 70, 0, 0)
@@ -86,10 +82,9 @@ contentPadding.PaddingRight = UDim.new(0, 12)
 contentPadding.PaddingTop = UDim.new(0, 12)
 contentPadding.Parent = content
 
--- Drag do painel (mantido igual)
+-- Drag
 local dragging = false
 local dragStart, startPos
-
 titleBar.InputBegan:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
         dragging = true
@@ -97,19 +92,17 @@ titleBar.InputBegan:Connect(function(input)
         startPos = mainFrame.Position
     end
 end)
-
 UserInputService.InputChanged:Connect(function(input)
     if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
         local delta = input.Position - dragStart
         mainFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
     end
 end)
-
 UserInputService.InputEnded:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then dragging = false end
 end)
 
--- Bolinha (mantido)
+-- Bolinha
 local orb = Instance.new("TextButton")
 orb.Size = UDim2.new(0, 60, 0, 60)
 orb.Position = UDim2.new(0.5, -30, 0.85, 0)
@@ -122,44 +115,25 @@ orb.Visible = false
 orb.Parent = screenGui
 Instance.new("UICorner", orb).CornerRadius = UDim.new(1, 0)
 
-minimizeBtn.MouseButton1Click:Connect(function()
-    mainFrame.Visible = false
-    orb.Visible = true
-end)
-
-local orbDragging = false
-local orbDragStart, orbStartPos
-
+minimizeBtn.MouseButton1Click:Connect(function() mainFrame.Visible = false; orb.Visible = true end)
 orb.InputBegan:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-        orbDragging = true
-        orbDragStart = input.Position
-        orbStartPos = orb.Position
+        local orbDragging = true
+        local orbDragStart = input.Position
+        local orbStartPos = orb.Position
+        local conn
+        conn = UserInputService.InputChanged:Connect(function(inp)
+            if orbDragging and (inp.UserInputType == Enum.UserInputType.MouseMovement or inp.UserInputType == Enum.UserInputType.Touch) then
+                local delta = inp.Position - orbDragStart
+                orb.Position = UDim2.new(orbStartPos.X.Scale, orbStartPos.X.Offset + delta.X, orbStartPos.Y.Scale, orbStartPos.Y.Offset + delta.Y)
+            end
+        end)
+        UserInputService.InputEnded:Connect(function() orbDragging = false; conn:Disconnect() end)
     end
 end)
+orb.MouseButton1Click:Connect(function() mainFrame.Visible = true; orb.Visible = false end)
+closeBtn.MouseButton1Click:Connect(function() screenGui:Destroy() end)
 
-UserInputService.InputChanged:Connect(function(input)
-    if orbDragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
-        local delta = input.Position - orbDragStart
-        orb.Position = UDim2.new(orbStartPos.X.Scale, orbStartPos.X.Offset + delta.X, orbStartPos.Y.Scale, orbStartPos.Y.Offset + delta.Y)
-    end
-end)
-
-UserInputService.InputEnded:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then orbDragging = false end
-end)
-
-orb.MouseButton1Click:Connect(function()
-    mainFrame.Visible = true
-    orb.Visible = false
-    mainFrame.Position = UDim2.new(0.5, -290, 0.5, -210)
-end)
-
-closeBtn.MouseButton1Click:Connect(function()
-    screenGui:Destroy()
-end)
-
--- ==================== API ====================
 local tabs = {}
 
 function Library:CreateWindow(config)
@@ -178,12 +152,13 @@ function Library:CreateTab(config)
     tabBtn.Parent = sidebar
     Instance.new("UICorner", tabBtn).CornerRadius = UDim.new(0, 8)
 
-    -- ÍCONE
+    -- ÍCONE REFORÇADO
     local iconObj
     if string.match(icon, "^https?://") or string.find(icon, "rbxassetid") then
         iconObj = Instance.new("ImageLabel")
         iconObj.Image = icon
         iconObj.ScaleType = Enum.ScaleType.Fit
+        iconObj.ResampleMode = Enum.ResamplerMode.Pixelated
         iconObj.BackgroundTransparency = 1
     else
         iconObj = Instance.new("TextLabel")
@@ -192,13 +167,13 @@ function Library:CreateTab(config)
         iconObj.Font = Enum.Font.GothamBold
         iconObj.BackgroundTransparency = 1
     end
-    iconObj.Size = UDim2.new(1, 0, 0.55, 0)
-    iconObj.TextColor3 = Color3.fromRGB(255, 200, 100)
+    iconObj.Size = UDim2.new(1, 0, 0.6, 0)
+    iconObj.Position = UDim2.new(0, 0, 0, 0)
     iconObj.Parent = tabBtn
 
     local nameLabel = Instance.new("TextLabel")
-    nameLabel.Size = UDim2.new(1, 0, 0.45, 0)
-    nameLabel.Position = UDim2.new(0, 0, 0.55, 0)
+    nameLabel.Size = UDim2.new(1, 0, 0.4, 0)
+    nameLabel.Position = UDim2.new(0, 0, 0.6, 0)
     nameLabel.BackgroundTransparency = 1
     nameLabel.Text = name
     nameLabel.TextScaled = true
@@ -206,13 +181,15 @@ function Library:CreateTab(config)
     nameLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
     nameLabel.Parent = tabBtn
 
-    -- TAB CONTENT (ScrollingFrame dentro de Frame)
     local tabContent = Instance.new("ScrollingFrame")
+    tabContent.Name = "TabContent_"..name
     tabContent.Size = UDim2.new(1, 0, 1, 0)
     tabContent.BackgroundTransparency = 1
-    tabContent.ScrollBarThickness = 5
+    tabContent.ScrollBarThickness = 6
     tabContent.Visible = false
     tabContent.AutomaticCanvasSize = Enum.AutomaticSize.Y
+    tabContent.ScrollingDirection = Enum.ScrollingDirection.Y
+    tabContent.ClipsDescendants = true
     tabContent.Parent = content
 
     local layout = Instance.new("UIListLayout")
@@ -248,6 +225,7 @@ function Library:CreateTab(config)
             b.Parent = tabContent
             Instance.new("UICorner", b).CornerRadius = UDim.new(0, 8)
             b.MouseButton1Click:Connect(cfg.Callback or function() end)
+            task.wait() -- força update
         end,
 
         CreateToggle = function(self, cfg)
@@ -346,7 +324,9 @@ function Library:CreateTab(config)
                 end
             end
 
-            local function onInputChanged(input)
+            knob.InputBegan:Connect(onInputBegan)
+            bar.InputBegan:Connect(onInputBegan)
+            UserInputService.InputChanged:Connect(function(input)
                 if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
                     local mousePos = input.Position
                     local barPos = bar.AbsolutePosition
@@ -354,28 +334,20 @@ function Library:CreateTab(config)
                     local percent = math.clamp((mousePos.X - barPos.X) / barSize.X, 0, 1)
                     setValue(min + (max - min) * percent)
                 end
-            end
-
-            knob.InputBegan:Connect(onInputBegan)
-            bar.InputBegan:Connect(onInputBegan)
-            UserInputService.InputChanged:Connect(onInputChanged)
+            end)
 
             UserInputService.InputEnded:Connect(function(input)
-                if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-                    dragging = false
-                end
+                if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then dragging = false end
             end)
 
             updateSlider()
-            return { SetValue = setValue, GetValue = function() return value end }
         end
     }
 end
 
--- Sidebar dinâmico
 sidebarLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
     sidebar.CanvasSize = UDim2.new(0, 0, 0, sidebarLayout.AbsoluteContentSize.Y + 20)
 end)
 
-print("MINI HUB LIBRARY - Estrutura corrigida, CanvasSize fixado, Sidebar dinâmico!")
+print("MINI HUB - Corrigido e blindado!")
 return Library
