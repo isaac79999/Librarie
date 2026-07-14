@@ -1,9 +1,8 @@
--- MINI HUB LIBRARY - Final com Toggle + Icon (URL/ID) + Slider Mobile/PC
+-- MINI HUB LIBRARY - Versão Corrigida (Estrutura + Canvas + Sidebar)
 local Library = {}
 
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
-local RunService = game:GetService("RunService")
 
 local player = Players.LocalPlayer
 local gethui = gethui or function() return player:WaitForChild("PlayerGui") end
@@ -74,11 +73,11 @@ sidebarLayout.SortOrder = Enum.SortOrder.LayoutOrder
 sidebarLayout.Padding = UDim.new(0, 8)
 sidebarLayout.Parent = sidebar
 
-local content = Instance.new("ScrollingFrame")
+-- CONTENT AGORA É FRAME (melhor estrutura)
+local content = Instance.new("Frame")
 content.Size = UDim2.new(1, -70, 1, 0)
 content.Position = UDim2.new(0, 70, 0, 0)
 content.BackgroundColor3 = Color3.fromRGB(26, 26, 26)
-content.ScrollBarThickness = 5
 content.Parent = container
 
 local contentPadding = Instance.new("UIPadding")
@@ -87,7 +86,7 @@ contentPadding.PaddingRight = UDim.new(0, 12)
 contentPadding.PaddingTop = UDim.new(0, 12)
 contentPadding.Parent = content
 
--- Drag do painel
+-- Drag do painel (mantido igual)
 local dragging = false
 local dragStart, startPos
 
@@ -110,7 +109,7 @@ UserInputService.InputEnded:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then dragging = false end
 end)
 
--- Bolinha
+-- Bolinha (mantido)
 local orb = Instance.new("TextButton")
 orb.Size = UDim2.new(0, 60, 0, 60)
 orb.Position = UDim2.new(0.5, -30, 0.85, 0)
@@ -128,7 +127,6 @@ minimizeBtn.MouseButton1Click:Connect(function()
     orb.Visible = true
 end)
 
--- Drag bolinha
 local orbDragging = false
 local orbDragStart, orbStartPos
 
@@ -180,7 +178,7 @@ function Library:CreateTab(config)
     tabBtn.Parent = sidebar
     Instance.new("UICorner", tabBtn).CornerRadius = UDim.new(0, 8)
 
-    -- ÍCONE CORRIGIDO (URL + rbxassetid)
+    -- ÍCONE
     local iconObj
     if string.match(icon, "^https?://") or string.find(icon, "rbxassetid") then
         iconObj = Instance.new("ImageLabel")
@@ -194,7 +192,6 @@ function Library:CreateTab(config)
         iconObj.Font = Enum.Font.GothamBold
         iconObj.BackgroundTransparency = 1
     end
-    
     iconObj.Size = UDim2.new(1, 0, 0.55, 0)
     iconObj.TextColor3 = Color3.fromRGB(255, 200, 100)
     iconObj.Parent = tabBtn
@@ -209,21 +206,19 @@ function Library:CreateTab(config)
     nameLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
     nameLabel.Parent = tabBtn
 
+    -- TAB CONTENT (ScrollingFrame dentro de Frame)
     local tabContent = Instance.new("ScrollingFrame")
     tabContent.Size = UDim2.new(1, 0, 1, 0)
     tabContent.BackgroundTransparency = 1
     tabContent.ScrollBarThickness = 5
     tabContent.Visible = false
+    tabContent.AutomaticCanvasSize = Enum.AutomaticSize.Y
     tabContent.Parent = content
 
     local layout = Instance.new("UIListLayout")
     layout.SortOrder = Enum.SortOrder.LayoutOrder
     layout.Padding = UDim.new(0, 10)
     layout.Parent = tabContent
-
-    layout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
-        tabContent.CanvasSize = UDim2.new(0, 0, 0, layout.AbsoluteContentSize.Y + 40)
-    end)
 
     table.insert(tabs, {btn = tabBtn, content = tabContent})
 
@@ -241,8 +236,6 @@ function Library:CreateTab(config)
         tabBtn.BackgroundColor3 = Color3.fromRGB(255, 140, 0)
     end
 
-    sidebar.CanvasSize = UDim2.new(0, 0, 0, sidebarLayout.AbsoluteContentSize.Y + 20)
-
     return {
         CreateButton = function(self, cfg)
             local b = Instance.new("TextButton")
@@ -259,7 +252,6 @@ function Library:CreateTab(config)
 
         CreateToggle = function(self, cfg)
             local state = cfg.CurrentValue or false
-
             local toggle = Instance.new("TextButton")
             toggle.Size = UDim2.new(1, 0, 0, 46)
             toggle.BackgroundColor3 = Color3.fromRGB(55,55,55)
@@ -278,7 +270,6 @@ function Library:CreateTab(config)
                     toggle.BackgroundColor3 = Color3.fromRGB(55,55,55)
                 end
             end
-
             Update()
 
             toggle.MouseButton1Click:Connect(function()
@@ -381,4 +372,10 @@ function Library:CreateTab(config)
     }
 end
 
+-- Sidebar dinâmico
+sidebarLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+    sidebar.CanvasSize = UDim2.new(0, 0, 0, sidebarLayout.AbsoluteContentSize.Y + 20)
+end)
+
+print("MINI HUB LIBRARY - Estrutura corrigida, CanvasSize fixado, Sidebar dinâmico!")
 return Library
